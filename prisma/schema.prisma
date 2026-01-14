@@ -1,0 +1,116 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums ensure type safety at the DB level
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+}
+
+enum NodeType {
+  TRIGGER
+  ACTION
+}
+
+enum ExecutionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  workflows     Workflow[]
+  connections   Connection[]
+}
+
+// Stores OAuth tokens for services (Gmail, Slack, etc.)
+// SENIOR NOTE: In a real prod env, 'accessToken' and 'refreshToken'
+// should be encrypted at the application level before saving.
+model Connection {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   // e.g., 'google', 'slack'
+  accessToken  String   @db.Text
+  refreshToken String?  @db.Text
+  expiresAt    Int?     // Unix timestamp
+  connectedAt  DateTime @default(now())
+
+  // Metadata helps identify the account (e.g., "jason@gmail.com")
+  accountName  String?
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider]) // One connection per provider per user (for MVP)
+}
+
+model Workflow {
+  id          String         @id @default(cuid())
+  userId      String
+  name        String
+  description String?        // Used by AI to understand context
+  status      WorkflowStatus @default(DRAFT)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // The actual logic steps
+  nodes       WorkflowNode[]
+
+  // History of runs
+  executions  ExecutionLog[]
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model WorkflowNode {
+  id          String   @id @default(cuid())
+  workflowId  String
+  type        NodeType // TRIGGER or ACTION
+
+  // Identifies the specific handler (e.g., "gmail-new-email", "slack-send-msg")
+  connectorType String
+
+  // Stores the specific configuration (e.g., { "channelId": "123", "message": "Hello" })
+  config      Json?
+
+  // Positioning for the UI Canvas
+  positionX   Int      @default(0)
+  positionY   Int      @default(0)
+
+  // Linked List structure to define order of execution
+  parentId    String?  // If null, this is the root trigger
+  childId     String?  @unique // One child for linear flows (MVP)
+
+  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+}
+
+model ExecutionLog {
+  id          String          @id @default(cuid())
+  workflowId  String
+  status      ExecutionStatus
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+
+  // Snapshots of data for debugging
+  triggerData Json?           // What data started the flow?
+  resultData  Json?           // What was the final output?
+  error       String?         // Stack trace or error message if failed
+
+  workflow    Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+}
