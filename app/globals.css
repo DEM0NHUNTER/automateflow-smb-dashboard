@@ -2,47 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
+/* * DESIGN SYSTEM TOKENS & THEME REGISTRY
+ * -------------------------------------
+ * This file serves as the foundational token layer for the application.
+ * * ARCHITECTURE STRATEGY: HSL Variables
+ * We define colors using pure HSL values (e.g., "222.2 84% 4.9%") rather than hex codes.
+ * WHY? This allows Tailwind to automatically apply opacity modifiers at runtime.
+ * Example: 'bg-primary/50' is compiled by Tailwind into 'hsla(var(--primary), 0.5)'.
+ * * LAYERING:
+ * We inject these into `@layer base` to ensure they are available before any
+ * utility classes are generated, preventing specificity wars.
+ */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* * LIGHT MODE PRIMITIVES
+     * ---------------------
+     * Semantic mappings for the default light theme.
+     */
+
+    /* Core Layout Colors */
+    --background: 0 0% 100%;       /* Pure White */
+    --foreground: 222.2 84% 4.9%;  /* High-contrast dark text (not pure black for readability) */
+
+    /* Surface Containers (Cards, Modals) */
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+
+    /* Brand Identity - The primary action color */
+    --primary: 221.2 83.2% 53.3%;           /* Vibrant Blue */
+    --primary-foreground: 210 40% 98%;      /* Text ensuring WCAG contrast on primary */
+
+    /* Secondary Actions - Less visual weight */
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
+
+    /* De-emphasized Elements (Subtitles, placeholders) */
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
+
+    /* Interactive States (Hover backgrounds, active list items) */
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
+
+    /* System States (Errors, Destruction) */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+
+    /* Structural Elements */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 221.2 83.2% 53.3%; /* Focus ring color for a11y */
+
+    /* Global Shape Token */
     --radius: 0.5rem;
   }
 
+  /* * DARK MODE OVERRIDES
+   * -------------------
+   * Activated when the `.dark` class is present on the document root.
+   * This enables instant client-side theme switching without page reloads.
+   */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 222.2 84% 4.9%;  /* Deep Navy/Black */
+    --foreground: 210 40% 98%;     /* Off-white text for reduced eye strain */
+
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
+
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
+
+    /* Adjusted Primary for dark mode contrast/visibility */
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
+
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
+
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
+
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
@@ -50,6 +98,15 @@
 }
 
 @layer base {
+  /*
+   * GLOBAL DEFAULTS
+   * ---------------
+   * Applies the theme tokens to standard HTML elements.
+   * * 1. Sets a default border color for ALL elements.
+   * This allows us to write `class="border"` without specifying a color every time.
+   * 2. Enforces background and foreground colors on the body, ensuring
+   * the theme persists even in empty space or during overscroll.
+   */
   * {
     @apply border-border;
   }

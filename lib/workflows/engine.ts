@@ -1,17 +1,35 @@
 import { db } from "@/lib/db";
 import { AppNode, WorkflowContext } from "@/lib/utils/types";
 
+/**
+ * Core Workflow Orchestration Engine
+ * ----------------------------------
+ * Responsible for the lifecycle of a single workflow execution.
+ * * ARCHITECTURAL DECISIONS:
+ * 1. Execution Model: Currently uses a recursive Depth-First Traversal (DFT).
+ * - Pro: Simple to implement for linear chains.
+ * - Con: Risk of stack overflow on extremely long chains (1000+ nodes).
+ * - Future: Refactor to an iterative loop with a queue for better stack safety.
+ * * 2. State Management: Uses a `context` object passed by reference to accumulate
+ * results, allowing downstream nodes to access data from upstream nodes (e.g. Step 1 -> Step 5).
+ */
 export class WorkflowEngine {
   /**
-   * Main entry point.
-   * 1. Creates an Execution Log (PENDING)
-   * 2. Loads the workflow from DB
-   * 3. Validates the trigger
-   * 4. Starts the execution loop
-   * 5. Updates Log (SUCCESS/FAILED)
+   * Main Entry Point
+   * ----------------
+   * Orchestrates the setup, execution, and teardown of a workflow run.
+   * * @param workflowId - The ID of the definition to run.
+   * @param triggerData - The initial payload (webhook body, email content, etc.)
    */
   async runWorkflow(workflowId: string, triggerData: any = {}) {
-    // 1. Create an Execution Log entry immediately
+    /*
+     * AUDIT-FIRST PATTERN
+     * -------------------
+     * We create the log entry *before* doing any work.
+     * This ensures that even if the server crashes immediately after this line,
+     * we have a record that an execution was ATTEMPTED (stuck in PENDING).
+     * This is critical for debugging "silent failures" in production.
+     */
     const execution = await db.executionLog.create({
       data: {
         workflowId,
@@ -21,19 +39,30 @@ export class WorkflowEngine {
     });
 
     try {
-      // 2. Fetch the workflow and all its nodes
+      /*
+       * PERFORMANCE NOTE: "Load All" Strategy
+       * -------------------------------------
+       * We fetch the workflow and ALL nodes in a single query.
+       * For typical user workflows (5-50 nodes), this minimizes DB round-trips.
+       * For massive enterprise workflows, we might need to paginate or lazy-load nodes.
+       */
       const workflow = await db.workflow.findUnique({
         where: { id: workflowId },
         include: { nodes: true },
       });
 
-      if (!workflow || workflow.status !== "ACTIVE" && workflow.status !== "DRAFT") {
-        // Note: We allow DRAFT for testing purposes right now
-        throw new Error("Workflow not found");
+      if (!workflow || (workflow.status !== "ACTIVE" && workflow.status !== "DRAFT")) {
+        // Allowing DRAFT status enables the "Test Run" feature in the editor
+        throw new Error("Workflow not found or inactive");
       }
 
-      // 3. Find the Root Trigger Node (the one with no parent)
-      // In our linear linked list, the start node has no parentId.
+      /*
+       * TRIGGER VALIDATION
+       * ------------------
+       * We identify the root by finding the node with no parent.
+       * Assumption: The graph is a strict Linked List or Tree.
+       * If we support detached sub-graphs in the future, this logic needs validaton.
+       */
       const startNode = workflow.nodes.find(
         (n) => n.type === "TRIGGER" && !n.parentId
       );
@@ -42,8 +71,7 @@ export class WorkflowEngine {
         throw new Error("No valid trigger node found. Workflow must start with a Trigger.");
       }
 
-      // 4. Initialize Context
-      // This object passes data between steps (e.g., Step 1 output -> Step 2 input)
+      // Initialize the "Bus" that carries state through the execution
       const context: WorkflowContext = {
         workflowId,
         executionId: execution.id,
@@ -51,11 +79,16 @@ export class WorkflowEngine {
         stepResults: {},
       };
 
-      // 5. Start Execution Loop
-      // We cast to 'AppNode' because Prisma types are slightly different from our app types
+      /*
+       * TECHNICAL DEBT: Type Casting
+       * ----------------------------
+       * Prisma types (Json objects) are looser than our strict `AppNode` interfaces.
+       * We cast here to satisfy TS, but a runtime Zod validation step would be safer
+       * to ensure the DB content matches our expected schema.
+       */
       await this.executeNode(startNode as unknown as AppNode, context, workflow.nodes as unknown as AppNode[]);
 
-      // 6. Mark Success
+      // Mark Complete
       await db.executionLog.update({
         where: { id: execution.id },
         data: {
@@ -70,7 +103,8 @@ export class WorkflowEngine {
     } catch (error: any) {
       console.error("Workflow Execution Failed:", error);
 
-      // 7. Log Failure
+      // FAILURE RECOVERY
+      // We explicitly capture the error message to display in the user's history dashboard.
       await db.executionLog.update({
         where: { id: execution.id },
         data: {
@@ -85,7 +119,11 @@ export class WorkflowEngine {
   }
 
   /**
-   * Recursive function to run a single node and then find its child.
+   * Recursive Execution Handler
+   * ---------------------------
+   * Executes the current node and recursively calls the next one.
+   * NOTE: This is strictly serial (Node A -> Node B).
+   * Parallel execution (Promise.all) would be needed for branching paths.
    */
   private async executeNode(
     node: AppNode,
@@ -94,13 +132,16 @@ export class WorkflowEngine {
   ) {
     console.log(`[Executing Node] ${node.connectorType} (${node.id})`);
 
-    // A. EXECUTE LOGIC based on connector type
+    // A. EXECUTE LOGIC
+    // Delegate the actual business logic to the service layer
     const result = await this.runServiceLogic(node, context);
 
-    // B. Store result in context for future nodes to use
+    // B. STATE PERSISTENCE
+    // Save the output so downstream nodes can reference it (e.g. `{{step_1.email_id}}`)
     context.stepResults[node.id] = result;
 
-    // C. Find next node
+    // C. TRAVERSAL
+    // Simple Linked-List pointer logic.
     if (node.childId) {
       const nextNode = allNodes.find((n) => n.id === node.childId);
       if (nextNode) {
@@ -110,23 +151,32 @@ export class WorkflowEngine {
   }
 
   /**
-   * The Switch Statement that routes to specific service logic.
-   * This is where the actual API calls (Gmail, Slack, etc.) happen.
+   * Service Dispatcher
+   * ------------------
+   * Routes the node type to the specific API handler.
+   * * ! ARCHITECTURE CRITIQUE: Open/Closed Principle Violation
+   * --------------------------------------------------------
+   * Currently, adding a new integration (e.g., Notion) requires modifying this core class.
+   * REFACTOR GOAL: Move to the Strategy Pattern or a Registry Map.
+   * Example: `serviceRegistry.get(node.connectorType).execute(node, context)`
+   * This would allow us to add new plugins without touching the engine core.
    */
   private async runServiceLogic(node: AppNode, context: WorkflowContext) {
     switch (node.connectorType) {
       // --- ACTIONS ---
       case "slack-send-message":
-        // Mocking the Slack API call for now
+        // TODO: Extract to `services/slack.ts`
         console.log(`> 🟢 Sending Slack Message to ${(node.config as any).channelId || 'general'}`);
         return { sent: true, ts: Date.now() };
 
       case "gmail-send-email":
+        // TODO: Extract to `services/gmail.ts`
         console.log(`> 🟢 Sending Email to ${(node.config as any).to || 'unknown'}`);
         return { sent: true, messageId: "mock-id-123" };
 
       // --- TRIGGERS (Pass-through) ---
-      // Triggers usually just pass their initial data forward
+      // In a polling architecture, these would contain logic.
+      // In this webhook/event-driven architecture, they largely act as data pass-throughs.
       case "gmail-new-email":
         console.log(`> ⚡ Trigger: New Email Detected`);
         return context.triggerData;

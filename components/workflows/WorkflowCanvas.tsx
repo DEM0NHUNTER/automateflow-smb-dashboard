@@ -14,23 +14,36 @@ interface CanvasProps {
   onSave: (nodes: AppNode[]) => void;
 }
 
-// --- NEW COMPONENT: Draggable Wrapper ---
-// This enables the specific DOM element to be moved
+/**
+ * Draggable Wrapper Component
+ * ---------------------------
+ * Acts as the "Physics Body" for our visual nodes.
+ * It separates the drag mechanics (event listeners, transform math)
+ * from the presentation logic (TriggerNode/ActionNode).
+ */
 function DraggableNode({ id, left, top, children }: { id: string, left: number, top: number, children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
   });
 
-  // Calculate the temporary position while dragging (delta)
-  // If dragging, we use `transform`. If not, we use the absolute coordinates.
+  /*
+   * PERFORMANCE OPTIMIZATION: CSS TRANSFORMS
+   * ----------------------------------------
+   * During the drag operation (which fires ~60 times per second), we use
+   * CSS `transform` rather than updating `top/left` state.
+   * * Why?
+   * 1. 'transform' runs on the GPU (Compositor thread).
+   * 2. 'top/left' triggers Layout recalculations on the CPU (Main thread).
+   * This ensures buttery smooth 60fps dragging even with complex nodes.
+   */
   const style = {
     position: "absolute" as "absolute",
     left: left,
     top: top,
-    // This moves the node visually while you drag it
+    // Apply the temporary delta during the drag
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    zIndex: isDragging ? 1000 : 1, // Bring to front while dragging
-    touchAction: "none", // Critical for PointerSensor
+    zIndex: isDragging ? 1000 : 1, // Z-Index promotion prevents clipping behind other nodes
+    touchAction: "none", // Critical: Disables browser scrolling on touch devices while dragging
   };
 
   return (
@@ -40,28 +53,47 @@ function DraggableNode({ id, left, top, children }: { id: string, left: number, 
   );
 }
 
-// --- MAIN CANVAS COMPONENT ---
+/**
+ * Main Workflow Canvas (Infinite Whiteboard)
+ * ------------------------------------------
+ * Orchestrates the node state and drag context.
+ * * ARCHITECTURAL NOTE:
+ * We are using @dnd-kit here, which provides excellent "free-form" dragging primitives.
+ * However, unlike React Flow, it does not handle *Edges* (lines between nodes) out of the box.
+ * Future Scope: An SVG layer must be added behind these nodes to render connections.
+ */
 export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
   const [nodes, setNodes] = useState<AppNode[]>(initialNodes);
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  /*
+   * SENSOR CONFIGURATION
+   * --------------------
+   * We require a movement of 5 pixels (activationConstraint) before a drag registers.
+   * This differentiates a "Click" (to select/edit a node) from a "Drag" (to move it).
+   * Without this, users would accidentally move nodes every time they tried to click settings.
+   */
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Drag must move 5px before starting (prevents accidental clicks)
+        distance: 5,
       },
     })
   );
 
   const addNode = (type: "TRIGGER" | "ACTION") => {
+    // Basic heuristics to prevent nodes from stacking directly on top of each other
+    const offset = nodes.length * 30;
+
     const newNode: AppNode = {
       id: uuidv4(),
       workflowId: "temp",
       type,
+      // Default to common types for MVP
       connectorType: type === "TRIGGER" ? "gmail-new-email" : "slack-send-message",
       config: {},
-      positionX: 100 + (nodes.length * 30),
-      positionY: 100 + (nodes.length * 30),
+      positionX: 100 + offset,
+      positionY: 100 + offset,
       parentId: null,
       childId: null,
       createdAt: new Date(),
@@ -70,15 +102,19 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
     setNodes((prev) => [...prev, newNode]);
   };
 
+  /**
+   * Finalizes the drag operation.
+   * Merges the temporary `transform` delta into the permanent `positionX/Y` state.
+   */
   function handleDragEnd(event: DragEndEvent) {
     const { active, delta } = event;
 
     setNodes((prev) =>
       prev.map((node) => {
         if (node.id === active.id) {
-          // Permanently update the position state after drag ends
           return {
             ...node,
+            // Calculate new absolute coordinates
             positionX: node.positionX + delta.x,
             positionY: node.positionY + delta.y,
           };
@@ -112,6 +148,7 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
       {/* CANVAS AREA */}
       <div className="flex-1 relative overflow-hidden">
 
+        {/* Empty State: Guide the user when the canvas is blank */}
         {nodes.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-gray-400 pointer-events-none">
             <div className="text-center">
@@ -133,6 +170,7 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
               left={node.positionX}
               top={node.positionY}
             >
+              {/* Dynamic Component Loading based on Node Type */}
               {node.type === "TRIGGER" ? (
                 <TriggerNode data={node} />
               ) : (
@@ -141,12 +179,13 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
             </DraggableNode>
           ))}
 
+          {/* Overlay is technically optional for simple drags, but useful if we wanted
+            to show a different "Drag Preview" (e.g. a semi-transparent ghost)
+            while the user is moving the item.
+          */}
           <DragOverlay>
              {activeId ? (
-               <div className="opacity-80">
-                 {/* Optional: Render a "ghost" version while dragging.
-                     For now, we just let the original move. */}
-               </div>
+               <div className="opacity-80"></div>
              ) : null}
           </DragOverlay>
         </DndContext>

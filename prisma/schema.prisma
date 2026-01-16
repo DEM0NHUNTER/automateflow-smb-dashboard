@@ -9,7 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums ensure type safety at the DB level
+// Enums: Good use of native DB enums for strict state management
 enum WorkflowStatus {
   DRAFT
   ACTIVE
@@ -35,16 +35,32 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   workflows     Workflow[]
+
+  /*
+   * CASCADE DELETE WARNING
+   * ----------------------
+   * We use Cascade here to ensure that deleting a User wipes their keys.
+   * However, in enterprise environments, we often prefer "Soft Deletes" (deletedAt timestamp)
+   * to allow for account recovery or audit trails.
+   */
   connections   Connection[]
 }
 
-// Stores OAuth tokens for services (Gmail, Slack, etc.)
-// SENIOR NOTE: In a real prod env, 'accessToken' and 'refreshToken'
-// should be encrypted at the application level before saving.
+/*
+ * OAUTH CREDENTIAL STORAGE
+ * ------------------------
+ * SECURITY CRITICAL:
+ * Storing `accessToken` and `refreshToken` as plain text is a significant risk.
+ * * RECOMMENDATION:
+ * 1. Application Layer: Encrypt these strings (AES-256) before writing to DB.
+ * 2. Database Layer: Use pgcrypto extension if handling encryption at the DB level.
+ * 3. Never return these fields in default API responses (use DTOs).
+ */
 model Connection {
   id           String   @id @default(cuid())
   userId       String
   provider     String   // e.g., 'google', 'slack'
+
   accessToken  String   @db.Text
   refreshToken String?  @db.Text
   expiresAt    Int?     // Unix timestamp
@@ -52,17 +68,19 @@ model Connection {
 
   // Metadata helps identify the account (e.g., "jason@gmail.com")
   accountName  String?
-
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, provider]) // One connection per provider per user (for MVP)
+  // CONSTRAINT: Single account per provider per user.
+  // Limitation: A user cannot connect *two* different Gmail accounts.
+  // Future Fix: Remove this unique constraint and allow alias naming.
+  @@unique([userId, provider])
 }
 
 model Workflow {
   id          String         @id @default(cuid())
   userId      String
   name        String
-  description String?        // Used by AI to understand context
+  description String?        // Used by AI to understand context for edits
   status      WorkflowStatus @default(DRAFT)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -76,30 +94,61 @@ model Workflow {
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+/*
+ * WORKFLOW NODE ARCHITECTURE
+ * --------------------------
+ * CURRENT PATTERN: Doubly Linked List (Linear)
+ * - `childId` pointers connect nodes A -> B -> C.
+ * * LIMITATION:
+ * This schema explicitly forbids Branching (If/Else logic) because a node
+ * can only have ONE child (@unique).
+ * * SCALING PATH:
+ * To support complex trees or DAGs (Directed Acyclic Graphs), we must eventually
+ * deprecate `childId` and create a separate `Edge` model:
+ * model Edge { sourceNodeId, targetNodeId }
+ */
 model WorkflowNode {
   id          String   @id @default(cuid())
   workflowId  String
-  type        NodeType // TRIGGER or ACTION
+  type        NodeType
 
-  // Identifies the specific handler (e.g., "gmail-new-email", "slack-send-msg")
+  // The discriminator (e.g., "gmail-new-email").
+  // Mapped to specific logic handlers in the application Engine.
   connectorType String
 
-  // Stores the specific configuration (e.g., { "channelId": "123", "message": "Hello" })
+  // SCHEMALESS CONFIG
+  // We use JSONB here for flexibility, but this sacrifices SQL-level validation.
+  // mitigation: Use Zod schemas in the API layer to validate this blob before saving.
   config      Json?
 
-  // Positioning for the UI Canvas
+  // Visual Coordinates
   positionX   Int      @default(0)
   positionY   Int      @default(0)
 
-  // Linked List structure to define order of execution
-  parentId    String?  // If null, this is the root trigger
-  childId     String?  @unique // One child for linear flows (MVP)
+  // Pointer Logic
+  parentId    String?
+
+  // The @unique constraint enforces the "Linear Flow" MVP limitation.
+  childId     String?  @unique
 
   workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
+  // Index ensures fetching all nodes for a workflow is fast (O(1) lookup vs scan)
   @@index([workflowId])
 }
 
+/*
+ * EXECUTION LOGGING
+ * -----------------
+ * PERFORMANCE WARNING:
+ * This table will grow exponentially faster than any other table.
+ * * STRATEGY:
+ * 1. MVP: Keep as is.
+ * 2. Production: Implement a TTL (Time-To-Live) policy or partitioning.
+ * (e.g., Move logs > 30 days old to S3/Cold Storage).
+ * 3. High Scale: Move generic logging to ElasticSearch/ClickHouse and only store
+ * status summaries here.
+ */
 model ExecutionLog {
   id          String          @id @default(cuid())
   workflowId  String
@@ -107,10 +156,12 @@ model ExecutionLog {
   startedAt   DateTime        @default(now())
   completedAt DateTime?
 
-  // Snapshots of data for debugging
-  triggerData Json?           // What data started the flow?
-  resultData  Json?           // What was the final output?
-  error       String?         // Stack trace or error message if failed
+  // DEBUGGING SNAPSHOTS
+  // Storing input/output is great for debugging ("Why did this fail?"),
+  // but heavily bloats DB size. Monitor 'triggerData' size limits.
+  triggerData Json?
+  resultData  Json?
+  error       String?
 
   workflow    Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
