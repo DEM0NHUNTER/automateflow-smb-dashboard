@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
+// Note: If you haven't generated the button component yet,
+// temporarily remove the Button import and use a standard <button> tag.
 
 /**
- * Public Landing Page
+ * Public Landing Page (Root Route /)
  * ----------------------------------
  * This component serves as the marketing entry point for the application.
  * Unlike the dashboard pages, this layout is optimized for:
@@ -34,4 +35,23 @@ export default function Home() {
 
           {/* * CLIENT-SIDE NAVIGATION
            * ----------------------
-           * We use `Link` instead of `<a>
+           * We use `Link` instead of `<a>` to enable client-side transitions.
+           * Next.js automatically prefetches the code for the `/dashboard` route
+           * as soon as this link enters the viewport, making the transition near-instant.
+           */}
+          <Link href="/dashboard/workflows/new">
+            {/* * TODO: COMPONENT STANDARDIZATION
+             * -------------------------------
+             * Currently using a raw HTML button with utility classes.
+             * Refactor to use the shared `<Button size="lg">` component to ensure
+             * consistent hover states, padding, and focus rings across the app.
+             */}
+            <button className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition-all">
+              Try the Workflow Builder &rarr;
+            </button>
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
