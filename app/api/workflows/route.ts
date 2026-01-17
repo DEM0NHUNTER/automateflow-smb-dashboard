@@ -7,17 +7,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { name, nodes, userId } = body;
-
-    // Default to the hardcoded demo ID if none provided
     const targetUserId = userId || "demo-user-123";
-
-    // ▼▼▼ THE FIX IS HERE: Added ': Prisma.TransactionClient' ▼▼▼
-    const workflow = await db.$transaction(async (tx: Prisma.TransactionClient) => {
-
-      // 1. SELF-HEALING: Ensure the User exists
+    const workflow = await db.$transaction(async (tx) => {
       await tx.user.upsert({
         where: { id: targetUserId },
-        update: {},
+        update: {}, 
         create: {
           id: targetUserId,
           email: "demo@example.com",
@@ -25,7 +19,6 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 2. Create Workflow
       const newWorkflow = await tx.workflow.create({
         data: {
           userId: targetUserId,
@@ -34,14 +27,13 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // 3. Create Nodes
       if (nodes && nodes.length > 0) {
         await tx.workflowNode.createMany({
           data: nodes.map((node: AppNode, index: number) => ({
             workflowId: newWorkflow.id,
             type: node.type,
             connectorType: node.connectorType,
-            config: node.config as any,
+            config: node.config as any, 
             positionX: node.positionX,
             positionY: node.positionY,
             parentId: index > 0 ? nodes[index - 1].id : null,
@@ -49,14 +41,11 @@ export async function POST(req: NextRequest) {
           })),
         });
       }
-
       return newWorkflow;
     });
-
     return NextResponse.json({ success: true, workflowId: workflow.id });
-
   } catch (error: any) {
-    console.error("Error creating workflow:", error);
+    console.error("❌ Error creating workflow:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }
