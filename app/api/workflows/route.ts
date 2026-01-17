@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-// import { AppNode } from "@/lib/utils/types";
+import { AppNode } from "@/lib/utils/types";
 // import { Prisma } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
     // Default to the hardcoded demo ID if none provided
     const targetUserId = userId || "demo-user-123";
 
-    const workflow = await db.$transaction(async (tx: Prisma.TransactionClient) => {
-      
+const workflow = await db.$transaction(async (tx: any) => {
+  
       // 1. SELF-HEALING: Ensure the User exists
       await tx.user.upsert({
         where: { id: targetUserId },
