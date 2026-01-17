@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { WorkflowEngine } from "@/lib/workflows/engine";
 
 /**
  * Workflow Execution Endpoint
@@ -23,6 +22,7 @@ export async function POST(
      * refactoring to a Singleton pattern or DI container to prevent
      * connection exhaustion in serverless/lambda environments.
      */
+    const { WorkflowEngine } = await import("@/lib/workflows/engine");
     const engine = new WorkflowEngine();
 
     /*
