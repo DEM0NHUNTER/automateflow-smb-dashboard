@@ -1,7 +1,4 @@
 // lib/utils/types.ts
-
-import { WorkflowNode } from "@prisma/client";
-
 /**
  * CORE DOMAIN DEFINITIONS
  * -----------------------
