@@ -5,15 +5,96 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-// Enums: Good use of native DB enums for strict state management
+// -----------------------------------------------------------------------------
+// USER MANAGEMENT
+// -----------------------------------------------------------------------------
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workflows   Workflow[]
+  
+  // We use Cascade here to ensure that deleting a User wipes their keys.
+  // In enterprise envs, "Soft Deletes" are preferred, but Cascade is fine for MVP.
+  connections Connection[]
+}
+
+// -----------------------------------------------------------------------------
+// OAUTH CREDENTIAL STORAGE
+// SECURITY NOTE: Storing tokens as plain text is risky. 
+// In production, encrypt these strings (AES-256) at the app layer before saving.
+// -----------------------------------------------------------------------------
+model Connection {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  provider    String   // "google", "slack", "notion"
+  accessToken String
+  refreshToken String?
+  expiresAt   Int?     // Unix timestamp
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, provider]) // One Google connection per user
+}
+
+// -----------------------------------------------------------------------------
+// WORKFLOW DEFINITIONS
+// -----------------------------------------------------------------------------
+model Workflow {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  status      WorkflowStatus @default(DRAFT)
+  
+  nodes       WorkflowNode[]
+  executions  ExecutionLog[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
 enum WorkflowStatus {
   DRAFT
   ACTIVE
   PAUSED
+}
+
+// -----------------------------------------------------------------------------
+// WORKFLOW NODES (The Logic)
+// Pattern: Doubly Linked List (Linear) via parentId/childId
+// -----------------------------------------------------------------------------
+model WorkflowNode {
+  id            String   @id @default(uuid())
+  workflowId    String
+  workflow      Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  type          NodeType // TRIGGER or ACTION
+  connectorType String   // "gmail-new-email", "slack-send-message"
+  config        Json     // Stores { channelId: "...", subject: "..." }
+
+  positionX     Int      @default(0)
+  positionY     Int      @default(0)
+  
+  // Linear Linking Logic
+  parentId      String?  @unique 
+  childId       String?  @unique
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 enum NodeType {
@@ -21,147 +102,27 @@ enum NodeType {
   ACTION
 }
 
+// -----------------------------------------------------------------------------
+// EXECUTION LOGS (The Audit Trail)
+// -----------------------------------------------------------------------------
+model ExecutionLog {
+  id          String          @id @default(uuid())
+  workflowId  String
+  workflow    Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  status      ExecutionStatus @default(PENDING)
+  startedAt   DateTime        @default(now())
+  completedAt DateTime?
+  
+  triggerData Json?           // The webhook payload or email data that started it
+  resultData  Json?           // The final output of all steps
+  error       String?         // Capture error message if failed
+
+  @@index([workflowId])
+}
+
 enum ExecutionStatus {
   PENDING
   SUCCESS
   FAILED
-}
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  workflows     Workflow[]
-
-  /*
-   * CASCADE DELETE WARNING
-   * ----------------------
-   * We use Cascade here to ensure that deleting a User wipes their keys.
-   * However, in enterprise environments, we often prefer "Soft Deletes" (deletedAt timestamp)
-   * to allow for account recovery or audit trails.
-   */
-  connections   Connection[]
-}
-
-/*
- * OAUTH CREDENTIAL STORAGE
- * ------------------------
- * SECURITY CRITICAL:
- * Storing `accessToken` and `refreshToken` as plain text is a significant risk.
- * * RECOMMENDATION:
- * 1. Application Layer: Encrypt these strings (AES-256) before writing to DB.
- * 2. Database Layer: Use pgcrypto extension if handling encryption at the DB level.
- * 3. Never return these fields in default API responses (use DTOs).
- */
-model Connection {
-  id           String   @id @default(cuid())
-  userId       String
-  provider     String   // e.g., 'google', 'slack'
-
-  accessToken  String   @db.Text
-  refreshToken String?  @db.Text
-  expiresAt    Int?     // Unix timestamp
-  connectedAt  DateTime @default(now())
-
-  // Metadata helps identify the account (e.g., "jason@gmail.com")
-  accountName  String?
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // CONSTRAINT: Single account per provider per user.
-  // Limitation: A user cannot connect *two* different Gmail accounts.
-  // Future Fix: Remove this unique constraint and allow alias naming.
-  @@unique([userId, provider])
-}
-
-model Workflow {
-  id          String         @id @default(cuid())
-  userId      String
-  name        String
-  description String?        // Used by AI to understand context for edits
-  status      WorkflowStatus @default(DRAFT)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  // The actual logic steps
-  nodes       WorkflowNode[]
-
-  // History of runs
-  executions  ExecutionLog[]
-
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-/*
- * WORKFLOW NODE ARCHITECTURE
- * --------------------------
- * CURRENT PATTERN: Doubly Linked List (Linear)
- * - `childId` pointers connect nodes A -> B -> C.
- * * LIMITATION:
- * This schema explicitly forbids Branching (If/Else logic) because a node
- * can only have ONE child (@unique).
- * * SCALING PATH:
- * To support complex trees or DAGs (Directed Acyclic Graphs), we must eventually
- * deprecate `childId` and create a separate `Edge` model:
- * model Edge { sourceNodeId, targetNodeId }
- */
-model WorkflowNode {
-  id          String   @id @default(cuid())
-  workflowId  String
-  type        NodeType
-
-  // The discriminator (e.g., "gmail-new-email").
-  // Mapped to specific logic handlers in the application Engine.
-  connectorType String
-
-  // SCHEMALESS CONFIG
-  // We use JSONB here for flexibility, but this sacrifices SQL-level validation.
-  // mitigation: Use Zod schemas in the API layer to validate this blob before saving.
-  config      Json?
-
-  // Visual Coordinates
-  positionX   Int      @default(0)
-  positionY   Int      @default(0)
-
-  // Pointer Logic
-  parentId    String?
-
-  // The @unique constraint enforces the "Linear Flow" MVP limitation.
-  childId     String?  @unique
-
-  workflow    Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-
-  // Index ensures fetching all nodes for a workflow is fast (O(1) lookup vs scan)
-  @@index([workflowId])
-}
-
-/*
- * EXECUTION LOGGING
- * -----------------
- * PERFORMANCE WARNING:
- * This table will grow exponentially faster than any other table.
- * * STRATEGY:
- * 1. MVP: Keep as is.
- * 2. Production: Implement a TTL (Time-To-Live) policy or partitioning.
- * (e.g., Move logs > 30 days old to S3/Cold Storage).
- * 3. High Scale: Move generic logging to ElasticSearch/ClickHouse and only store
- * status summaries here.
- */
-model ExecutionLog {
-  id          String          @id @default(cuid())
-  workflowId  String
-  status      ExecutionStatus
-  startedAt   DateTime        @default(now())
-  completedAt DateTime?
-
-  // DEBUGGING SNAPSHOTS
-  // Storing input/output is great for debugging ("Why did this fail?"),
-  // but heavily bloats DB size. Monitor 'triggerData' size limits.
-  triggerData Json?
-  resultData  Json?
-  error       String?
-
-  workflow    Workflow        @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 }
