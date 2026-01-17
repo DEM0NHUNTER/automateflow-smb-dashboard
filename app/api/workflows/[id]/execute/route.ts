@@ -6,6 +6,7 @@ import { WorkflowEngine } from "@/lib/workflows/engine";
  * * Trigger a specific workflow manually via API.
  * * @route POST /api/workflows/[id]/execute
  */
+export const dynamic = 'force-dynamic';
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
