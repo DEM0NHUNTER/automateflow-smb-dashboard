@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { AppNode } from "@/lib/utils/types";
-import { Prisma } from "@prisma/client";
+// import { AppNode } from "@/lib/utils/types";
+// import { Prisma } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   try {
+    const { db } = await import("@/lib/db");
     const body = await req.json();
     const { name, nodes, userId } = body;
     
@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const { db } = await import("@/lib/db");
   const workflows = await db.workflow.findMany({
     orderBy: { updatedAt: 'desc' },
     include: { _count: { select: { executions: true } } }
