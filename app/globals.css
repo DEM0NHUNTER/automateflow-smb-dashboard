@@ -16,10 +16,10 @@
 
 @layer base {
   :root {
-    /* * LIGHT MODE PRIMITIVES
-     * ---------------------
-     * Semantic mappings for the default light theme.
-     */
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 
     /* Core Layout Colors */
     --background: 0 0% 100%;       /* Pure White */
@@ -59,7 +59,21 @@
     /* Global Shape Token */
     --radius: 0.5rem;
   }
-
+  ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  }
   /* * DARK MODE OVERRIDES
    * -------------------
    * Activated when the `.dark` class is present on the document root.
