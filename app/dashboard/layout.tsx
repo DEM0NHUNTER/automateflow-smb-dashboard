@@ -1,47 +1,72 @@
+import React from "react";
+import Link from "next/link";
+import { LayoutDashboard, Plus, Settings } from "lucide-react";
+
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    /**
-     * DASHBOARD SHELL
-     * ---------------
-     * Uses a full-viewport height (h-screen) strategy to create an "application-like" feel.
-     * This prevents the entire window from scrolling, delegating scrolling behaviors
-     * to individual regions (sidebar vs main content) instead.
-     */
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans">
+      {/* --- SIDEBAR --- */}
+      <aside className="w-[60px] lg:w-64 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col justify-between z-20">
+        <div>
+          {/* Logo Area */}
+          <div className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-100">
+             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+               A
+             </div>
+             <span className="ml-3 font-bold text-lg hidden lg:block text-slate-800">
+               AutomateFlow
+             </span>
+          </div>
 
-      {/* * SIDEBAR REGION
-       * --------------
-       * TODO: Extract to <Sidebar /> component.
-       * Keeping it inline is fine for MVP, but extracting it allows for:
-       * 1. Isolated state (e.g., collapsible menus).
-       * 2. Config-driven navigation (mapping over a generic `navItems` array).
-       * * Responsive Note: Currently hidden on mobile (hidden md:block).
-       * A MobileSheet/Drawer component is needed for small viewports.
-       */}
-      <aside className="w-64 bg-white border-r hidden md:block p-4">
-        <h2 className="font-bold text-xl mb-4 text-blue-600">AutomateFlow</h2>
+          {/* Nav Links */}
+          <nav className="p-2 space-y-1 mt-4">
+            <Link 
+              href="/dashboard/workflows" 
+              className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-md transition-colors group"
+            >
+              <LayoutDashboard className="w-5 h-5" />
+              <span className="hidden lg:block font-medium">Workflows</span>
+            </Link>
 
-        {/* Navigation items should eventually be driven by the current pathname
-            to apply 'active' states dynamically. */}
-        <nav className="space-y-2">
-          <div className="p-2 bg-blue-50 text-blue-700 rounded cursor-pointer">Workflows</div>
-          <div className="p-2 text-gray-600 hover:bg-gray-50 rounded cursor-pointer">Connections</div>
-          <div className="p-2 text-gray-600 hover:bg-gray-50 rounded cursor-pointer">Logs</div>
-        </nav>
+            <Link 
+              href="/dashboard/workflows/new" 
+              className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-md transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              <span className="hidden lg:block font-medium">Create New</span>
+            </Link>
+          </nav>
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="p-2 border-t border-slate-100">
+          <button className="flex w-full items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-md transition-colors">
+            <Settings className="w-5 h-5" />
+            <span className="hidden lg:block font-medium">Settings</span>
+          </button>
+        </div>
       </aside>
 
-      {/* * MAIN CONTENT REGION
-       * -------------------
-       * `flex-1`: Takes up all remaining width.
-       * `overflow-auto`: Ensures that long content scrolls *inside* this container
-       * rather than stretching the parent window. This keeps the sidebar fixed.
-       */}
-      <main className="flex-1 overflow-auto">
-        {children}
+      {/* --- MAIN CONTENT AREA --- */}
+      <main className="flex-1 flex flex-col h-full relative overflow-hidden">
+        {/* Top Header (Optional - good for breadcrumbs) */}
+        <header className="h-14 border-b border-slate-200 bg-white flex items-center px-6 justify-between flex-shrink-0">
+           <h2 className="font-semibold text-slate-700">Workflow Editor</h2>
+           <div className="flex items-center gap-4">
+             <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold ring-2 ring-white">
+               JD
+             </div>
+           </div>
+        </header>
+
+        {/* The Page Content (Canvas) */}
+        <div className="flex-1 overflow-hidden relative bg-slate-50">
+          {children}
+        </div>
       </main>
     </div>
   );
