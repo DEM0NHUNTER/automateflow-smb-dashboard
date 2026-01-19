@@ -42,12 +42,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+return (
     <html lang="en">
-      {/* The font class is applied to the body to ensure typography cascades
-        globally to all child elements by default.
-      */}
-      <body className={inter.className}>{children}</body>
+      <body className={`${inter.className} min-h-screen bg-background font-sans antialiased`}>
+        
+        {/* * The "Technical Canvas" Background 
+          * ----------------------------------------------------
+          * This div creates a subtle radial dot pattern that fades out at the edges.
+          * It gives the app depth without distraction.
+          */}
+        <div className="fixed inset-0 z-[-1] h-full w-full bg-white dark:bg-[#020817]">
+          <div className="absolute h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>
+        </div>
+
+        {children}
+      </body>
     </html>
   );
 }
