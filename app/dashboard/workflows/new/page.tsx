@@ -96,12 +96,15 @@ export default function NewWorkflowPage() {
         setCurrentNodes(data.nodes);
         setCanvasKey(prev => prev + 1);
         setPrompt("");
+        toast.info("AI Generated Workflow", {
+          description: `Created ${data.nodes.length} nodes from your prompt.`,
+        });
       }
 
     } catch (e) {
       console.error(e);
-      toast.info("AI Generated Workflow", {
-        description: `Created ${data.nodes.length} nodes from your prompt.`,
+      toast.error("Generation Failed", {
+        description: "Could not parse your request. Check console.",
       });
     } finally {
       setIsGenerating(false);
