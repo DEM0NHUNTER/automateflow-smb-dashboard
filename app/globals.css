@@ -4,9 +4,7 @@
 
 @layer base {
   :root {
-    /* * OPTICAL SIZING
-     * Seniors use variables for spacing to ensure consistency across components.
-     */
+    /* OPTICAL SIZING */
     --radius: 0.5rem;
     --header-height: 4rem;
 
@@ -22,7 +20,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
 
-    /* Brand: "Electric Indigo" instead of generic blue */
+    /* Brand: "Electric Indigo" */
     --primary: 221.2 83.2% 53.3%;
     --primary-foreground: 210 40% 98%;
 
@@ -43,10 +41,7 @@
     --ring: 221.2 83.2% 53.3%;
   }
 
-  /* * DARK MODE (Rich, Deep, "Linear-like")
-   * -------------------------------------
-   * We switched from "Dark Gray" to "Void Black" with subtle blue undertones.
-   */
+  /* DARK MODE (Rich, Deep, "Linear-like") */
   .dark {
     --background: 224 71% 4%;      /* Deepest Obsidian */
     --foreground: 210 20% 98%;
@@ -83,7 +78,7 @@
     @apply border-border;
   }
 
-  /* * SENIOR TOUCH 1: Font Smoothing
+  /* * Font Smoothing
    * Makes text look thinner and crisper on Mac/High-DPI screens.
    */
   body {
@@ -91,7 +86,7 @@
     font-feature-settings: "rlig" 1, "calt" 1; /* Optimize font rendering */
   }
 
-  /* * SENIOR TOUCH 2: Custom Scrollbars
+  /* * Custom Scrollbars
    * Native scrollbars ruin the immersion. These blend in.
    */
   ::-webkit-scrollbar {
@@ -108,7 +103,7 @@
     @apply bg-slate-400 dark:bg-slate-600;
   }
 
-  /* * SENIOR TOUCH 3: Selection Color
+  /* * Selection Color
    * Matches the brand color when user highlights text.
    */
   ::selection {
@@ -116,10 +111,9 @@
   }
 }
 
-/* * SENIOR TOUCH 4: Technical Backgrounds
+/* * Technical Backgrounds
  * -------------------------------------
- * A subtle grid pattern commonly used in automation tools to create
- * a "canvas" feel for the empty space.
+ * A subtle grid pattern
  * Usage: <div class="bg-grid-small-black/[0.2]">
  */
 @layer utilities {
