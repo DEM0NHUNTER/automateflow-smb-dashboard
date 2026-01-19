@@ -128,13 +128,12 @@ export default function NewWorkflowPage() {
     }
   };
 
- return (
-    // We removed "h-full" here because the parent layout provides the height context
+return (
     <div className="w-full h-full relative flex flex-col">
       
-      {/* Actions Layer */}
+      {/* Actions Layer - MOVED "RIGHT" VALUE TO 36 */}
       {savedWorkflowId && (
-        <div className="absolute top-4 right-4 z-50 animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-4 right-36 z-50 animate-in fade-in slide-in-from-top-2">
           <Button 
             onClick={handleRun} 
             className="bg-green-600 hover:bg-green-700 text-white shadow-lg gap-2"
