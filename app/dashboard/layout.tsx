@@ -9,7 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    // 1. GLOBAL TEXT COLOR: Adapts to theme automatically
+    // 1. Text color adapts automatically (Black in light mode, White in dark mode)
     <div className="flex h-screen w-full font-sans text-foreground">
       
       {/* --- SIDEBAR --- */}
