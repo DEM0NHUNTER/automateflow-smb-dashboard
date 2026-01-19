@@ -9,9 +9,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen w-full bg-slate-50 text-slate-900 font-sans">
+    <div className="flex h-screen w-full font-sans text-foreground">
       {/* --- SIDEBAR --- */}
-      <aside className="w-[60px] lg:w-64 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col justify-between z-20">
+      <aside className="w-[60px] lg:w-64 flex-shrink-0 border-r border-border bg-card/80 backdrop-blur-sm flex flex-col justify-between z-20">
         <div>
           {/* Logo Area */}
           <div className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-slate-100">
@@ -27,7 +27,7 @@ export default function DashboardLayout({
           <nav className="p-2 space-y-1 mt-4">
             <Link 
               href="/dashboard/workflows" 
-              className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-slate-50 hover:text-blue-600 rounded-md transition-colors group"
+              className="flex items-center gap-3 px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-md transition-colors group"
             >
               <LayoutDashboard className="w-5 h-5" />
               <span className="hidden lg:block font-medium">Workflows</span>
@@ -55,8 +55,7 @@ export default function DashboardLayout({
 
       {/* --- MAIN CONTENT AREA --- */}
       <main className="flex-1 flex flex-col h-full relative overflow-hidden">
-        {/* Top Header (Optional - good for breadcrumbs) */}
-        <header className="h-14 border-b border-slate-200 bg-white flex items-center px-6 justify-between flex-shrink-0">
+        <header className="h-14 border-b border-slate-200 bg-card/80 flex items-center px-6 justify-between flex-shrink-0">
            <h2 className="font-semibold text-slate-700">Workflow Editor</h2>
            <div className="flex items-center gap-4">
              <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold ring-2 ring-white">
@@ -66,7 +65,7 @@ export default function DashboardLayout({
         </header>
 
         {/* The Page Content (Canvas) */}
-        <div className="flex-1 overflow-hidden relative bg-slate-50">
+        <div className="flex-1 overflow-hidden relative">
           {children}
         </div>
       </main>
