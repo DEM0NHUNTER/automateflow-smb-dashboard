@@ -125,20 +125,31 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
     setActiveId(null);
   }
 
-  return (
-    <div className="flex h-screen flex-col bg-slate-50">
+return (
+    <div className="flex h-screen flex-col">
+      
       {/* TOOLBAR */}
-      <div className="border-b bg-white p-4 flex justify-between items-center shadow-sm z-10">
+      <div className="border-b border-border bg-card/80 backdrop-blur-sm p-4 flex justify-between items-center z-10">
         <div className="flex gap-2">
-          <Button onClick={() => addNode("TRIGGER")} variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100">
+          <Button 
+            onClick={() => addNode("TRIGGER")} 
+            variant="outline" 
+            className="border-primary/20 bg-primary/10 text-primary hover:bg-primary/20"
+          >
             + Add Trigger
           </Button>
-          <Button onClick={() => addNode("ACTION")} variant="outline" className="border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100">
+
+          <Button 
+            onClick={() => addNode("ACTION")} 
+            variant="outline" 
+            className="border-border bg-secondary text-secondary-foreground hover:bg-secondary/80"
+          >
             + Add Action
           </Button>
         </div>
+
         <div className="flex gap-2 items-center">
-           <span className="text-sm text-gray-500 mr-4">
+           <span className="text-sm text-muted-foreground mr-4">
              {nodes.length} nodes
            </span>
            <Button onClick={() => onSave(nodes)}>Save Workflow</Button>
@@ -148,9 +159,9 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
       {/* CANVAS AREA */}
       <div className="flex-1 relative overflow-hidden">
 
-        {/* Empty State: Guide the user when the canvas is blank */}
+        {/* Empty State */}
         {nodes.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-gray-400 pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground pointer-events-none">
             <div className="text-center">
               <p className="text-2xl mb-2 font-semibold">Empty Canvas</p>
               <p>Click "Add Trigger" to start building</p>
@@ -170,7 +181,6 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
               left={node.positionX}
               top={node.positionY}
             >
-              {/* Dynamic Component Loading based on Node Type */}
               {node.type === "TRIGGER" ? (
                 <TriggerNode data={node} />
               ) : (
@@ -179,17 +189,12 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
             </DraggableNode>
           ))}
 
-          {/* Overlay is technically optional for simple drags, but useful if we wanted
-            to show a different "Drag Preview" (e.g. a semi-transparent ghost)
-            while the user is moving the item.
-          */}
           <DragOverlay>
-             {activeId ? (
-               <div className="opacity-80"></div>
-             ) : null}
+              {activeId ? (
+                <div className="opacity-80"></div>
+              ) : null}
           </DragOverlay>
         </DndContext>
       </div>
     </div>
   );
-}
