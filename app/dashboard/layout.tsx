@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { LayoutDashboard, Plus, Settings } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function DashboardLayout({
   children,
@@ -43,11 +44,12 @@ export default function DashboardLayout({
         </div>
 
         {/* Bottom Actions */}
-        <div className="p-2 border-t border-slate-100">
-          <button className="flex w-full items-center gap-3 px-3 py-2 text-slate-500 hover:bg-slate-50 rounded-md transition-colors">
+        <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <button className="flex items-center gap-3 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors text-sm font-medium">
             <Settings className="w-5 h-5" />
-            <span className="hidden lg:block font-medium">Settings</span>
+            <span className="hidden lg:block">Settings</span>
           </button>
+          <ModeToggle /> {/* The Dark Mode Switch */}
         </div>
       </aside>
 
