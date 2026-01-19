@@ -5,6 +5,7 @@ import { WorkflowCanvas } from "@/components/workflows/WorkflowCanvas";
 import { AppNode } from "@/lib/utils/types";
 import { Button } from "@/components/ui/button";
 import { Loader2, Play, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 
 export default function NewWorkflowPage() {
   const [isSaving, setIsSaving] = useState(false);
@@ -31,11 +32,14 @@ export default function NewWorkflowPage() {
       if (!response.ok) throw new Error(data.error || "Failed to save");
 
       setSavedWorkflowId(data.workflowId);
-      alert(`✅ Success! Workflow saved. ID: ${data.workflowId}`);
-
+      toast.success("Workflow Saved", {
+        description: "Your automation has been successfully stored.",
+      });
     } catch (error: any) {
       console.error("Save failed:", error);
-      alert(`❌ Error saving: ${error.message}`);
+      toast.error("Save Failed", {
+        description: error.message,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -43,18 +47,35 @@ export default function NewWorkflowPage() {
 
   const handleRun = async () => {
     if (!savedWorkflowId) return;
+
+    const toastId = toast.loading("Initializing workflow execution...");
+
     try {
       const res = await fetch(`/api/workflows/${savedWorkflowId}/execute`, {
         method: "POST"
       });
       const data = await res.json();
+
+      // Dismiss the loading toast
+      toast.dismiss(toastId);
+
+      if (data.success) {
+        toast.success("Workflow Executed Successfully", {
+          description: "Check your server terminal for the execution logs.",
+        });
+      } else {
+        toast.error("Execution Failed", {
+          description: "The workflow could not complete. Check the console for details.",
+        });
+      }
+      
       console.log("Execution Result:", data);
-      alert(data.success
-        ? "🚀 Workflow Executed! Check your server terminal for logs."
-        : "❌ Execution Failed. Check console."
-      );
+
     } catch (e) {
-      alert("Failed to trigger execution");
+      toast.dismiss(toastId);
+      toast.error("Connection Error", {
+        description: "Failed to trigger execution. Is the server running?",
+      });
     }
   };
 
@@ -79,7 +100,9 @@ export default function NewWorkflowPage() {
 
     } catch (e) {
       console.error(e);
-      alert("AI Generation failed. Check console.");
+      toast.info("AI Generated Workflow", {
+        description: `Created ${data.nodes.length} nodes from your prompt.`,
+      });
     } finally {
       setIsGenerating(false);
     }
