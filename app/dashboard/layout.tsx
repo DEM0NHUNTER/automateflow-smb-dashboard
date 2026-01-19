@@ -9,6 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
+    // 1. GLOBAL TEXT COLOR: Adapts to theme automatically
     <div className="flex h-screen w-full font-sans text-foreground">
       
       {/* --- SIDEBAR --- */}
@@ -16,7 +17,6 @@ export default function DashboardLayout({
         <div>
           {/* Logo Area */}
           <div className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-border">
-             {/* Uses brand primary color */}
              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
                A
              </div>
@@ -63,7 +63,6 @@ export default function DashboardLayout({
         <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center px-6 justify-between flex-shrink-0">
            <h2 className="font-semibold text-foreground">Workflow Editor</h2>
            <div className="flex items-center gap-4">
-             {/* Semantic colors for the avatar */}
              <div className="w-8 h-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-xs font-bold ring-2 ring-background">
                JD
              </div>
