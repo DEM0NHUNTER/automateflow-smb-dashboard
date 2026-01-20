@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 export default function Home() {
+  redirect("/dashboard/workflows/new");
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-slate-900 text-white">
       
