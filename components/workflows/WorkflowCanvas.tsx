@@ -114,21 +114,27 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
         </div>
       </div>
 
-      {/* REACT FLOW CANVAS */}
-      <div className="flex-1 h-full w-full">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-        >
-          <Background color="transparent" variant={BackgroundVariant.Dots} />
-          <Controls className="bg-card border-border text-foreground" />
-        </ReactFlow>
-      </div>
+    {/* REACT FLOW CANVAS */}
+    <div className="flex-1 h-full w-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        
+        fitView
+        fitViewOptions={{ padding: 1, maxZoom: 1 }}
+        minZoom={0.5}
+        maxZoom={2}
+      >
+        <Background color="transparent" variant={BackgroundVariant.Dots} />
+        <Controls 
+          position="bottom-right" 
+          className="bg-card border-border text-foreground fill-foreground m-4" 
+        />
+      </ReactFlow>
     </div>
   );
 }
