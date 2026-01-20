@@ -1,4 +1,5 @@
 import React from "react";
+import { Handle, Position, NodeProps } from "reactflow";
 import { AppNode } from "@/lib/utils/types";
 
 /**
@@ -8,7 +9,8 @@ import { AppNode } from "@/lib/utils/types";
  * Unlike ActionNodes, Triggers generally do not have input handles,
  * as they are the starting pulse of the automation.
  */
-export function TriggerNode({ data }: { data: AppNode }) {
+export function TriggerNode({ data }: NodeProps) {
+  const appData = data as AppNode;
   return (
     /* * VISUAL SEMANTICS
      * ----------------
@@ -16,41 +18,28 @@ export function TriggerNode({ data }: { data: AppNode }) {
      * compared to standard nodes. This establishes a clear visual hierarchy,
      * letting users instantly identify where the data flow begins.
      */
-    <div className="w-64 rounded-lg border-2 border-blue-500 bg-white shadow-md">
-
-      {/* Header: Consistent branding with the container border */}
+    <div className="w-64 rounded-lg border-2 border-blue-500 bg-white shadow-md transition-all hover:shadow-xl">
+      {/* Header */}
       <div className="flex items-center gap-2 rounded-t-md bg-blue-50 px-4 py-2 border-b border-blue-100">
         <span className="text-xl">⚡</span>
         <div>
           <span className="font-semibold text-blue-900 block text-sm">Trigger</span>
-          {/* Technical ID for debugging (e.g., 'gmail-new-email') */}
-          <span className="text-xs text-blue-400 font-mono">{data.connectorType}</span>
+          <span className="text-xs text-blue-400 font-mono">{appData.connectorType || "webhook"}</span>
         </div>
       </div>
 
-      <div className="p-4">
-        {/* * CONDITIONAL CONFIG PREVIEW
-         * --------------------------
-         * Instead of generic text, we try to show high-value configuration data immediately.
-         * For scheduled triggers, the Cron expression is the most vital piece of info.
-         * TODO: Convert cron expressions (e.g. '0 9 * * 1') to human text ('Every Monday at 9am')
-         * using a library like `crony` or `cronstrue`.
-         */}
+<div className="p-4">
         <p className="text-sm text-gray-500">
-          {data.config && data.config.cronExpression
-            ? `Schedule: ${data.config.cronExpression}`
+          {appData.config?.cronExpression 
+            ? `Schedule: ${appData.config.cronExpression}` 
             : "Starts automation when event occurs"}
         </p>
       </div>
-
-      {/* * OUTPUT HANDLE PLACEHOLDER
-       * -------------------------
-       * Visual representation of the data output port.
-       * CRITICAL FIX REQUIRED: This div needs to be replaced or wrapped with
-       * the library-specific `<Handle type="source" />` component.
-       * Without it, this node cannot connect to downstream actions.
-       */}
-      <div className="absolute -bottom-3 left-1/2 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-blue-500 bg-white"></div>
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        className="!bg-blue-500 !w-3 !h-3 !border-2 !border-white"
+      />
     </div>
   );
 }
