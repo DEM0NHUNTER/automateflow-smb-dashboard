@@ -130,9 +130,32 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
           maxZoom={2}
         >
           <Background color="transparent" variant={BackgroundVariant.Dots} />
+          
+          {/* --- DESIGN CONTROLS --- */}
           <Controls 
             position="bottom-right" 
-            className="bg-card border-border text-foreground fill-foreground m-4" 
+            showInteractive={false}
+            className="
+              mb-24 mr-8            /* Move higher (above AI bar) and left */
+              bg-card/80            /* Glass background */
+              backdrop-blur-md      /* Blur effect */
+              border border-border  /* Theme border */
+              shadow-2xl            /* Deep shadow */
+              rounded-2xl           /* Modern rounded corners */
+              p-1                   /* Padding for the buttons */
+              
+              /* --- INTERNAL BUTTON STYLING --- */
+              [&>button]:border-none             /* Remove default borders */
+              [&>button]:bg-transparent          /* Remove default background */
+              [&>button]:text-muted-foreground   /* Subtle gray icons */
+              [&>button]:fill-current            /* Ensure SVG fills use text color */
+              [&>button:hover]:bg-primary/10     /* Soft brand color on hover */
+              [&>button:hover]:text-primary      /* Brand colored icon on hover */
+              [&>button]:rounded-xl              /* Round the buttons inside */
+              [&>button]:w-10                    /* Bigger touch target */
+              [&>button]:h-10                    /* Bigger touch target */
+              [&>button]:transition-all          /* Smooth animation */
+            " 
           />
         </ReactFlow>
       </div>
