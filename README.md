@@ -85,18 +85,27 @@ Open <http://localhost:3000> in your browser. The app should automatically redir
 
 ## 📂 Project Structure
 ```
-├── app/                  # Next.js App Router pages & layouts
-│   ├── api/              # Backend API routes (AI, Database saves)
-│   ├── dashboard/        # Dashboard layout and Workflow pages
-│   ├── layout.tsx        # Root layout (Theme provider, Background grid)
-│   └── page.tsx          # Root redirect
-├── components/           # Reusable UI components
-│   ├── ui/               # Shadcn UI primitives (Buttons, Inputs)
-│   ├── workflows/        # Canvas logic, Node components
-│   └── theme-provider.tsx
-├── lib/                  # Utilities (Prisma client, Helper functions)
-├── prisma/               # Database schema (schema.prisma)
-└── public/               # Static assets
+├── app/
+│   ├── api/
+│   │   ├── ai/parse/         # Generates workflow nodes from natural language
+│   │   └── workflows/        # API for saving, loading, and executing workflows
+│   ├── dashboard/            # Main application UI (Protected routes)
+│   └── layout.tsx            # Root layout (Theme provider, Background grid)
+├── components/
+│   ├── ui/                   # Shadcn UI primitives (Buttons, Inputs, Cards)
+│   ├── workflows/
+│   │   ├── NodeTypes/        # Custom React Flow nodes (Trigger vs Action)
+│   │   └── WorkflowCanvas.tsx# Main visual editor logic
+│   └── theme-provider.tsx    # Dark mode context
+├── lib/
+│   ├── ai/                   # OpenAI client configuration
+│   ├── utils/                # Shared types, constants, and helper functions
+│   └── workflows/            # The "Engine" (Backend logic to execute nodes)
+├── prisma/
+│   ├── migrations/           # Database history
+│   └── schema.prisma         # PostgreSQL schema definition
+├── public/                   # Static assets
+└── scripts/                  # CI/CD hooks and testing scripts
 ```
 ## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
