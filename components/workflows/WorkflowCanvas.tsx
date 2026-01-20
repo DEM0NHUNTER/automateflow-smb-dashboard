@@ -106,16 +106,13 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
             + Add Action
           </Button>
         </div>
+        
         <div className="flex gap-2 items-center">
-           <span className="text-sm text-muted-foreground mr-4">
-             {nodes.length} nodes • {edges.length} connections
-           </span>
            <Button onClick={handleSave}>Save Workflow</Button>
         </div>
       </div>
 
-    {/* REACT FLOW CANVAS */}
-      <div className="flex-1 h-full w-full">
+      <div className="flex-1 h-full w-full relative"> 
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -123,7 +120,6 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
-          
           fitView
           fitViewOptions={{ padding: 1, maxZoom: 1 }}
           minZoom={0.5}
@@ -131,33 +127,20 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
         >
           <Background color="transparent" variant={BackgroundVariant.Dots} />
           
-          {/* --- DESIGN CONTROLS --- */}
           <Controls 
             position="bottom-right" 
             showInteractive={false}
-            className="
-              mb-24 mr-8            /* Move higher (above AI bar) and left */
-              bg-card/80            /* Glass background */
-              backdrop-blur-md      /* Blur effect */
-              border border-border  /* Theme border */
-              shadow-2xl            /* Deep shadow */
-              rounded-2xl           /* Modern rounded corners */
-              p-1                   /* Padding for the buttons */
-              
-              /* --- INTERNAL BUTTON STYLING --- */
-              [&>button]:border-none             /* Remove default borders */
-              [&>button]:bg-transparent          /* Remove default background */
-              [&>button]:text-muted-foreground   /* Subtle gray icons */
-              [&>button]:fill-current            /* Ensure SVG fills use text color */
-              [&>button:hover]:bg-primary/10     /* Soft brand color on hover */
-              [&>button:hover]:text-primary      /* Brand colored icon on hover */
-              [&>button]:rounded-xl              /* Round the buttons inside */
-              [&>button]:w-10                    /* Bigger touch target */
-              [&>button]:h-10                    /* Bigger touch target */
-              [&>button]:transition-all          /* Smooth animation */
-            " 
+            className="mb-24 mr-8 bg-card/80 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-1 [&>button]:border-none [&>button]:bg-transparent [&>button]:text-muted-foreground [&>button]:fill-current [&>button:hover]:bg-primary/10 [&>button:hover]:text-primary [&>button]:rounded-xl [&>button]:w-10 [&>button]:h-10 [&>button]:transition-all" 
           />
         </ReactFlow>
+
+        <div className="absolute bottom-24 left-8 z-50 pointer-events-none">
+          <div className="bg-card/80 backdrop-blur-md border border-border shadow-lg rounded-full px-4 py-2 text-xs font-medium text-muted-foreground flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            {nodes.length} nodes • {edges.length} connections
+          </div>
+        </div>
+
       </div>
     </div>
   );
