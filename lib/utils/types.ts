@@ -1,14 +1,11 @@
 // lib/utils/types.ts
-
-import { WorkflowNode } from "@prisma/client";
-
 /**
  * CORE DOMAIN DEFINITIONS
  * -----------------------
  * This file serves as the "Rosetta Stone" between the Database (Prisma),
  * the Runtime Engine (Node execution), and the Frontend (UI Config).
  */
-
+export type NodeType = "TRIGGER" | "ACTION";
 // 1. Registry of supported services
 // Used for grouping in the UI sidebar and filtering integrations.
 export type ServiceProvider = "google" | "slack" | "notion";
@@ -70,14 +67,19 @@ export interface SlackActionConfig extends BaseNodeConfig {
  * - `type` becomes the specific TriggerType/ActionType unions.
  * - `config` becomes the specific Config interfaces.
  */
-export interface AppNode extends WorkflowNode {
-  // Overriding Prisma's loose 'string' type with our strict Union
+export interface AppNode {
+  id: string;
+  workflowId: string;
+  type: NodeType;          
   connectorType: TriggerType | ActionType;
-
-  // Overriding Prisma's loose 'Json' type with our specific Interfaces
-  config: GmailTriggerConfig | ScheduleTriggerConfig | SlackActionConfig;
+  config: BaseNodeConfig;
+  positionX: number;
+  positionY: number;
+  parentId: string | null;
+  childId: string | null;
+  createdAt?: Date | string; 
+  updatedAt?: Date | string;
 }
-
 /*
  * 5. RUNTIME EXECUTION CONTEXT
  * ----------------------------

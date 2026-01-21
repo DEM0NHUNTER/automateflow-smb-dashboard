@@ -2,115 +2,127 @@
 @tailwind components;
 @tailwind utilities;
 
-/* * DESIGN SYSTEM TOKENS & THEME REGISTRY
- * -------------------------------------
- * This file serves as the foundational token layer for the application.
- * * ARCHITECTURE STRATEGY: HSL Variables
- * We define colors using pure HSL values (e.g., "222.2 84% 4.9%") rather than hex codes.
- * WHY? This allows Tailwind to automatically apply opacity modifiers at runtime.
- * Example: 'bg-primary/50' is compiled by Tailwind into 'hsla(var(--primary), 0.5)'.
- * * LAYERING:
- * We inject these into `@layer base` to ensure they are available before any
- * utility classes are generated, preventing specificity wars.
- */
-
 @layer base {
   :root {
-    /* * LIGHT MODE PRIMITIVES
-     * ---------------------
-     * Semantic mappings for the default light theme.
+    /* OPTICAL SIZING */
+    --radius: 0.5rem;
+    --header-height: 4rem;
+
+    /* * LIGHT MODE (Clean, crisp, "Stripe-like")
+     * ----------------------------------------
      */
-
-    /* Core Layout Colors */
     --background: 0 0% 100%;       /* Pure White */
-    --foreground: 222.2 84% 4.9%;  /* High-contrast dark text (not pure black for readability) */
+    --foreground: 224 71.4% 4.1%;  /* Almost Black (softer on eyes) */
 
-    /* Surface Containers (Cards, Modals) */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 71.4% 4.1%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 224 71.4% 4.1%;
 
-    /* Brand Identity - The primary action color */
-    --primary: 221.2 83.2% 53.3%;           /* Vibrant Blue */
-    --primary-foreground: 210 40% 98%;      /* Text ensuring WCAG contrast on primary */
+    /* Brand: "Electric Indigo" */
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
 
-    /* Secondary Actions - Less visual weight */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
 
-    /* De-emphasized Elements (Subtitles, placeholders) */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
 
-    /* Interactive States (Hover backgrounds, active list items) */
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
 
-    /* System States (Errors, Destruction) */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    /* Structural Elements */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%; /* Focus ring color for a11y */
-
-    /* Global Shape Token */
-    --radius: 0.5rem;
+    --border: 220 13% 91%;        /* Subtle cool gray */
+    --input: 220 13% 91%;
+    --ring: 221.2 83.2% 53.3%;
   }
 
-  /* * DARK MODE OVERRIDES
-   * -------------------
-   * Activated when the `.dark` class is present on the document root.
-   * This enables instant client-side theme switching without page reloads.
-   */
+  /* DARK MODE (Rich, Deep, "Linear-like") */
   .dark {
-    --background: 222.2 84% 4.9%;  /* Deep Navy/Black */
-    --foreground: 210 40% 98%;     /* Off-white text for reduced eye strain */
+    --background: 224 71% 4%;      /* Deepest Obsidian */
+    --foreground: 210 20% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 224 71% 4%;
+    --card-foreground: 210 20% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 20% 98%;
 
-    /* Adjusted Primary for dark mode contrast/visibility */
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 215 27.9% 16.9%;    /* Darker borders for seamless blending */
+    --input: 215 27.9% 16.9%;
     --ring: 224.3 76.3% 48%;
   }
 }
 
 @layer base {
-  /*
-   * GLOBAL DEFAULTS
-   * ---------------
-   * Applies the theme tokens to standard HTML elements.
-   * * 1. Sets a default border color for ALL elements.
-   * This allows us to write `class="border"` without specifying a color every time.
-   * 2. Enforces background and foreground colors on the body, ensuring
-   * the theme persists even in empty space or during overscroll.
-   */
   * {
     @apply border-border;
   }
+
+  /* * Font Smoothing
+   * Makes text look thinner and crisper on Mac/High-DPI screens.
+   */
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1; /* Optimize font rendering */
+  }
+
+  /* * Custom Scrollbars
+   * Native scrollbars ruin the immersion. These blend in.
+   */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-slate-600;
+  }
+
+  /* * Selection Color
+   * Matches the brand color when user highlights text.
+   */
+  ::selection {
+    @apply bg-blue-500/30 text-blue-600 dark:text-blue-300;
+  }
+}
+
+/* * Technical Backgrounds
+ * -------------------------------------
+ * A subtle grid pattern
+ * Usage: <div class="bg-grid-small-black/[0.2]">
+ */
+@layer utilities {
+  .bg-grid-small-black {
+    background-size: 16px 16px;
+    background-image: radial-gradient(circle, #000 1px, transparent 1px);
+  }
+  .bg-grid-small-white {
+    background-size: 16px 16px;
+    background-image: radial-gradient(circle, #fff 1px, transparent 1px);
   }
 }

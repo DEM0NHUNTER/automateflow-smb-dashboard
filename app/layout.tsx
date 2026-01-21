@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 
 /*
  * FONT OPTIMIZATION
@@ -42,12 +44,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      {/* The font class is applied to the body to ensure typography cascades
-        globally to all child elements by default.
-      */}
-      <body className={inter.className}>{children}</body>
+return (
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen font-sans antialiased`}>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+
+          <div className="fixed inset-0 z-[-1] h-full w-full bg-background">
+            <div className="absolute h-full w-full bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_20%,#000_60%,transparent_100%)]"></div>
+          </div>
+          {children}
+          <Toaster position="top-center" richColors />  
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

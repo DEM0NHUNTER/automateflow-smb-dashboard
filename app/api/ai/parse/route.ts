@@ -1,67 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseWorkflowFromAI } from "@/lib/ai/client";
+import { v4 as uuidv4 } from "uuid";
 
-/**
- * AI Workflow Generation Endpoint
- * * Receives a natural language prompt and orchestrates the AI service
- * to generate a structured node-based workflow.
- * * @route POST /api/workflows/generate
- * @param req - Expects JSON body: { prompt: string }
- * @returns JSON containing an array of workflow nodes or an error object.
- */
+// ⚠️ IMPORTANT: Keep this to prevent Vercel build errors
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
-    // TODO: Implement Zod/Yup validation here to ensure 'prompt' exists and meets length requirements.
-    const { prompt } = await req.json();
+    const body = await req.json();
+    console.log("📝 Received Prompt:", body.prompt);
 
-    // Logging for observability (Consider moving to a structured logger like Pino in production)
-    console.log("📝 Received Prompt:", prompt);
+    // --- 🟢 MOCK MODE ENGAGED ---
+    // We strictly return this hardcoded data for testing purposes.
+    
+    const mockNodes = [
+      {
+        id: uuidv4(),
+        type: "TRIGGER",
+        connectorType: "gmail-new-email",
+        config: { 
+          subjectFilter: "Urgent", 
+          senderFilter: "boss@company.com" 
+        },
+        positionX: 100, 
+        positionY: 100
+      },
+      {
+        id: uuidv4(),
+        type: "ACTION",
+        connectorType: "slack-send-message",
+        config: { 
+          channelId: "#alerts", 
+          messageTemplate: "🚨 Urgent email received from {{sender}}" 
+        },
+        positionX: 400, // Shifted right to look nice on canvas
+        positionY: 100
+      },
+      {
+        id: uuidv4(),
+        type: "ACTION",
+        connectorType: "gmail-send-email",
+        config: { 
+          to: "me@personal.com",
+          subject: "Work Alert: Check Slack" 
+        },
+        positionX: 700, // Shifted further right
+        positionY: 100
+      }
+    ];
 
-    /* * DEV/PREVIEW MODE SAFEGUARD
-     * --------------------------
-     * Fallback to static mock data if the OpenAI provider is not configured.
-     * This prevents the application from crashing in CI/CD pipelines or
-     * local environments where API keys are restricted.
-     */
-    if (!process.env.OPENAI_API_KEY) {
-      console.log("⚠️ No Key - Returning Mock Data");
-      return NextResponse.json({
-        nodes: [
-          {
-            id: "mock-1",
-            type: "TRIGGER",
-            connectorType: "gmail-new-email",
-            config: {},
-            positionX: 100, positionY: 100
-          },
-          {
-            id: "mock-2",
-            type: "ACTION",
-            connectorType: "slack-send-message",
-            config: { channelId: "#mock" },
-            positionX: 350, positionY: 100
-          }
-        ]
-      });
-    }
+    console.log("⚠️ RETURNING MOCK AI RESPONSE (3 Nodes)");
+    
+    // Simulate a slight network delay (0.5s) to make the "Generating..." UI feel real
+    await new Promise(resolve => setTimeout(resolve, 500));
 
+    return NextResponse.json({ nodes: mockNodes });
+    
+    // --- 🔴 REAL AI DISABLED BELOW ---
     /*
-     * REAL EXECUTION FLOW
-     * -------------------
-     * Offloads the heavy lifting to the AI client service.
-     * This abstraction keeps the route handler clean and testable.
-     */
+    if (!process.env.OPENAI_API_KEY) { ... }
     const nodes = await parseWorkflowFromAI(prompt);
-    console.log("✅ AI Parsed Nodes:", nodes.length);
-
     return NextResponse.json({ nodes });
+    */
 
   } catch (error: any) {
-    // Ensure we capture the specific error message from the AI service wrapper
     console.error("❌ API Error:", error.message);
-
-    // Return a 500 to signal to the frontend that the generation failed specifically
-    // (vs. a 400 for bad input), allowing the UI to show a "Retry" state.
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }

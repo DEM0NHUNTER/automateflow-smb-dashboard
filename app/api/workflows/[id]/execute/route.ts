@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { WorkflowEngine } from "@/lib/workflows/engine";
 
 /**
  * Workflow Execution Endpoint
  * * Trigger a specific workflow manually via API.
  * * @route POST /api/workflows/[id]/execute
  */
+export const dynamic = 'force-dynamic';
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -22,6 +22,7 @@ export async function POST(
      * refactoring to a Singleton pattern or DI container to prevent
      * connection exhaustion in serverless/lambda environments.
      */
+    const { WorkflowEngine } = await import("@/lib/workflows/engine");
     const engine = new WorkflowEngine();
 
     /*

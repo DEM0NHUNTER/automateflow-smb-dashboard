@@ -64,7 +64,7 @@ export class WorkflowEngine {
        * If we support detached sub-graphs in the future, this logic needs validaton.
        */
       const startNode = workflow.nodes.find(
-        (n) => n.type === "TRIGGER" && !n.parentId
+        (n: any) => n.type === "TRIGGER" && !n.parentId
       );
 
       if (!startNode) {
