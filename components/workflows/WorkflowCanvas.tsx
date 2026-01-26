@@ -11,7 +11,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   BackgroundVariant,
-  ProOptions, 
+  ProOptions,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { AppNode } from "@/lib/utils/types";
