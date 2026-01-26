@@ -11,6 +11,7 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   BackgroundVariant,
+  ProOptions, 
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { AppNode } from "@/lib/utils/types";
@@ -23,6 +24,8 @@ const nodeTypes = {
   TRIGGER: TriggerNode,
   ACTION: ActionNode,
 };
+
+const proOptions: ProOptions = { hideAttribution: true };
 
 interface CanvasProps {
   initialNodes?: AppNode[];
@@ -91,23 +94,24 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* TOOLBAR */}
-      <div className="border-b border-border bg-card/80 backdrop-blur-sm p-4 flex justify-between items-center z-10">
-        <div className="flex gap-2">
-          <Button onClick={() => addNode("TRIGGER")} variant="outline" className="border-primary/20 bg-primary/10 text-primary">
-            + Add Trigger
-          </Button>
-          <Button onClick={() => addNode("ACTION")} variant="outline" className="border-border bg-secondary text-secondary-foreground">
-            + Add Action
-          </Button>
-        </div>
-
-        <div className="flex gap-2 items-center">
-           <Button onClick={handleSave}>Save Workflow</Button>
-        </div>
-      </div>
-
       <div className="flex-1 h-full w-full relative">
+
+        {/* Floating Toolbar (Overlay) */}
+        <div className="absolute top-0 left-0 right-0 z-10 border-b border-border/50 bg-background/50 backdrop-blur-md p-4 flex justify-between items-center">
+            <div className="flex gap-2">
+            <Button onClick={() => addNode("TRIGGER")} variant="outline" className="border-primary/20 bg-primary/10 text-primary hover:bg-primary/20">
+                + Add Trigger
+            </Button>
+            <Button onClick={() => addNode("ACTION")} variant="outline" className="border-border bg-secondary/50 text-secondary-foreground hover:bg-secondary/80">
+                + Add Action
+            </Button>
+            </div>
+
+            <div className="flex gap-2 items-center">
+            <Button onClick={handleSave}>Save Workflow</Button>
+            </div>
+        </div>
+
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -115,6 +119,7 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
+          proOptions={proOptions}
           fitView
           fitViewOptions={{ padding: 1, maxZoom: 1 }}
           minZoom={0.5}
@@ -122,7 +127,7 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
           autoPanOnNodeDrag={true}
           autoPanOnConnect={true}
         >
-          <Background color="transparent" variant={BackgroundVariant.Dots} />
+          <Background color="#888" variant={BackgroundVariant.Dots} gap={20} size={1} className="opacity-[0.15]" />
 
           <Controls
             position="bottom-right"
@@ -131,7 +136,7 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
           />
         </ReactFlow>
 
-        <div className="absolute bottom-24 left-8 z-50 pointer-events-none">
+        <div className="absolute bottom-4 left-4 z-50 pointer-events-none">
           <div className="bg-card/80 backdrop-blur-md border border-border shadow-lg rounded-full px-4 py-2 text-xs font-medium text-muted-foreground flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             {nodes.length} nodes • {edges.length} connections
