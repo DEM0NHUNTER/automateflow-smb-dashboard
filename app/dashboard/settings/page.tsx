@@ -85,7 +85,7 @@ export default function SettingsPage() {
          <div className="border border-red-200 dark:border-red-900/50 rounded-lg p-6 bg-red-50/50 dark:bg-red-950/10 space-y-4">
            <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <ShieldAlert className="w-5 h-5" />
-              <h3 className="font-semibold text-lg">Danger Zone</h3>
+              <h3 className="font-semibold text-lg">Danger</h3>
            </div>
            <p className="text-sm text-muted-foreground">Permanently delete your account and all workflows.</p>
            <Button variant="destructive" size="sm">Delete Account</Button>
