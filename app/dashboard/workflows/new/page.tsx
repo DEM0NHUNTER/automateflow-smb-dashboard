@@ -1,4 +1,4 @@
-// New Workflow Creation Page with AI Generation and Execution Features
+// app/dashboard/workflows/new/page.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -25,7 +25,7 @@ export default function NewWorkflowPage() {
         body: JSON.stringify({
           name: "My AI Automation",
           nodes: nodes,
-          userId: "demo-user-123", 
+          userId: "demo-user-123",
         }),
       });
 
@@ -69,7 +69,7 @@ export default function NewWorkflowPage() {
           description: "The workflow could not complete. Check the console for details.",
         });
       }
-      
+
       console.log("Execution Result:", data);
 
     } catch (e) {
@@ -98,18 +98,19 @@ export default function NewWorkflowPage() {
         setCanvasKey(prev => prev + 1);
         setPrompt("");
 
-        // --- CHECK FOR DEMO FLAG ---
+        // --- DEMO MODE CHECK ---
         if (data.isDemo) {
            toast.info("Demo Mode Active", {
              description: "Using simulated response to save API costs. The full source code connects to live GPT-4.",
-             duration: 5000, // Visible for 5 seconds
+             duration: 5000,
              icon: '🔒',
            });
         } else {
-           toast.success("AI Workflow Generated", {
+           toast.info("AI Generated Workflow", {
              description: `Created ${data.nodes.length} nodes from your prompt.`,
            });
         }
+      }
 
     } catch (e) {
       console.error(e);
@@ -123,12 +124,12 @@ export default function NewWorkflowPage() {
 
   return (
     <div className="w-full h-full relative flex flex-col">
-      
+
       {/* Actions Layer */}
       {savedWorkflowId && (
         <div className="absolute top-4 right-36 z-50 animate-in fade-in slide-in-from-top-2">
-          <Button 
-            onClick={handleRun} 
+          <Button
+            onClick={handleRun}
             className="bg-green-600 hover:bg-green-700 text-white shadow-lg gap-2"
           >
             <Play className="w-4 h-4" /> Run Test
@@ -138,10 +139,10 @@ export default function NewWorkflowPage() {
 
       {/* Canvas Layer */}
       <div className="flex-1 w-full h-full relative">
-        <WorkflowCanvas 
-          key={canvasKey} 
-          onSave={handleSave} 
-          initialNodes={currentNodes} 
+        <WorkflowCanvas
+          key={canvasKey}
+          onSave={handleSave}
+          initialNodes={currentNodes}
         />
       </div>
 
@@ -151,8 +152,8 @@ export default function NewWorkflowPage() {
           <div className="pl-3 text-indigo-500">
             <Sparkles className="w-5 h-5" />
           </div>
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Type 'Email me when I get a Slack message'..."
@@ -160,7 +161,7 @@ export default function NewWorkflowPage() {
             onKeyDown={(e) => e.key === 'Enter' && handleAIGenerate()}
             disabled={isGenerating}
           />
-          <Button 
+          <Button
             onClick={handleAIGenerate}
             disabled={isGenerating || !prompt.trim()}
             size="sm"
