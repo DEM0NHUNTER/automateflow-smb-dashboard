@@ -71,11 +71,12 @@ export async function POST(req: NextRequest) {
     // return NextResponse.json({ nodes, isDemo: false });
     */
     return NextResponse.json({ error: "Real AI Not Configured" }, { status: 500 });
-  } catch (error: any) {
+  }; catch (error: any) {
     console.error("❌ API Error:", error.message);
     return NextResponse.json(
       { error: error.message || "Internal Server Error" },
       { status: 500 }
     );
   }
+ };
 }
