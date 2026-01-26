@@ -29,6 +29,11 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\semse\PycharmProjects\automateflow-smb-dashboard\lib" />
+    </key>
+  </component>
   <component name="RunManager" selected="Python.gbasic">
     <configuration name="gbasic" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="automateflow-smb-dashboard" />
