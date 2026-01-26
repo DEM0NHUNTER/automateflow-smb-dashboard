@@ -1,4 +1,4 @@
-s// app/api/workflows/[id]/route.ts
+// app/api/workflows/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db"; // Ensure this path matches your db.ts location
 
