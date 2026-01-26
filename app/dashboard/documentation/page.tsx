@@ -1,20 +1,31 @@
 // app/dashboard/documentation/page.tsx
 import React from "react";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 export default function DocumentationPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
 
-      {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-           <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
-           <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">v1.0.0</Badge>
+      {/* BACK BUTTON ADDED HERE */}
+      <div>
+        <Link href="/dashboard/workflows/new">
+          <Button variant="ghost" className="pl-0 hover:bg-transparent hover:text-primary gap-2 mb-4">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Workspace
+          </Button>
+        </Link>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
+            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">v1.0.0</Badge>
+          </div>
+          <p className="text-muted-foreground">
+            Everything you need to configure and deploy your automation platform.
+          </p>
         </div>
-        <p className="text-muted-foreground">
-          Everything you need to configure and deploy your automation platform.
-        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-[250px_1fr]">
@@ -30,7 +41,6 @@ export default function DocumentationPage() {
 
         {/* Content */}
         <div className="space-y-10">
-
           <section id="quick-start" className="space-y-4">
             <h2 className="text-2xl font-semibold border-b pb-2">🚀 Quick Start</h2>
             <div className="prose dark:prose-invert max-w-none">
@@ -71,12 +81,12 @@ export default function DocumentationPage() {
           <section id="ai-config" className="space-y-4">
             <h2 className="text-2xl font-semibold border-b pb-2">🧠 AI Configuration</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="border p-4 rounded-lg bg-card">
+              <div className="border p-4 rounded-lg bg-card/50">
                 <h3 className="font-medium mb-2">Demo Mode (Free)</h3>
                 <p className="text-sm text-muted-foreground mb-2">Simulates AI responses to save costs.</p>
                 <code className="text-xs bg-muted px-2 py-1 rounded">NEXT_PUBLIC_IS_DEMO=true</code>
               </div>
-              <div className="border p-4 rounded-lg bg-card">
+              <div className="border p-4 rounded-lg bg-card/50">
                 <h3 className="font-medium mb-2">Production (Live)</h3>
                 <p className="text-sm text-muted-foreground mb-2">Connects to real OpenAI GPT-4.</p>
                 <code className="text-xs bg-muted px-2 py-1 rounded">NEXT_PUBLIC_IS_DEMO=false</code>
