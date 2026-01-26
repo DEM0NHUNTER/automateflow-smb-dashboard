@@ -30,18 +30,16 @@ interface CanvasProps {
 }
 
 export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
-  // 1. Convert AppNode (Database format) -> ReactFlow Node (Visual format)
   const defaultNodes: Node[] = initialNodes.map((n) => ({
     id: n.id,
     type: n.type,
     position: { x: n.positionX, y: n.positionY },
-    data: n, // Store full data object here
+    data: n,
   }));
 
   const [nodes, setNodes, onNodesChange] = useNodesState(defaultNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
-  // Sync state if AI generates new nodes
   useEffect(() => {
     if (initialNodes.length > 0) {
       setNodes(
@@ -55,7 +53,6 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
     }
   }, [initialNodes, setNodes]);
 
-  // Handle Connections (Drawing Lines)
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: "#6366f1" } }, eds)),
     [setEdges]
@@ -63,9 +60,8 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
 
   const addNode = (type: "TRIGGER" | "ACTION") => {
     const id = uuidv4();
-    // Random offset so they don't stack perfectly
     const position = { x: 200 + Math.random() * 50, y: 200 + Math.random() * 50 };
-    
+
     const newNode: Node = {
       id,
       type,
@@ -79,23 +75,22 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
         positionY: position.y,
       } as AppNode,
     };
-    
+
     setNodes((nds) => [...nds, newNode]);
   };
 
   const handleSave = () => {
-    // Convert ReactFlow Nodes -> Back to AppNode format for DB
     const appNodes: AppNode[] = nodes.map((n) => ({
       ...n.data,
       positionX: n.position.x,
       positionY: n.position.y,
     }));
-    
+
     onSave(appNodes, edges);
   };
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-full flex-col">
       {/* TOOLBAR */}
       <div className="border-b border-border bg-card/80 backdrop-blur-sm p-4 flex justify-between items-center z-10">
         <div className="flex gap-2">
@@ -106,13 +101,13 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
             + Add Action
           </Button>
         </div>
-        
+
         <div className="flex gap-2 items-center">
            <Button onClick={handleSave}>Save Workflow</Button>
         </div>
       </div>
 
-      <div className="flex-1 h-full w-full relative"> 
+      <div className="flex-1 h-full w-full relative">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -124,13 +119,15 @@ export function WorkflowCanvas({ initialNodes = [], onSave }: CanvasProps) {
           fitViewOptions={{ padding: 1, maxZoom: 1 }}
           minZoom={0.5}
           maxZoom={2}
+          autoPanOnNodeDrag={true}
+          autoPanOnConnect={true}
         >
           <Background color="transparent" variant={BackgroundVariant.Dots} />
-          
-          <Controls 
-            position="bottom-right" 
+
+          <Controls
+            position="bottom-right"
             showInteractive={false}
-            className="mb-24 mr-8 bg-card/80 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-1 [&>button]:border-none [&>button]:bg-transparent [&>button]:text-muted-foreground [&>button]:fill-current [&>button:hover]:bg-primary/10 [&>button:hover]:text-primary [&>button]:rounded-xl [&>button]:w-10 [&>button]:h-10 [&>button]:transition-all" 
+            className="mb-24 mr-8 bg-card/80 backdrop-blur-md border border-border shadow-2xl rounded-2xl p-1 [&>button]:border-none [&>button]:bg-transparent [&>button]:text-muted-foreground [&>button]:fill-current [&>button:hover]:bg-primary/10 [&>button:hover]:text-primary [&>button]:rounded-xl [&>button]:w-10 [&>button]:h-10 [&>button]:transition-all"
           />
         </ReactFlow>
 
