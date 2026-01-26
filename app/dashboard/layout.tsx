@@ -1,3 +1,4 @@
+// This is the main layout for the dashboard section of the app.
 import React from "react";
 import Link from "next/link";
 import { LayoutDashboard, Plus, Settings } from "lucide-react";

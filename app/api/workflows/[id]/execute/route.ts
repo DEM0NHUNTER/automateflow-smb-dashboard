@@ -1,10 +1,6 @@
+// Description: API Endpoint to trigger workflow execution by ID
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * Workflow Execution Endpoint
- * * Trigger a specific workflow manually via API.
- * * @route POST /api/workflows/[id]/execute
- */
 export const dynamic = 'force-dynamic';
 export async function POST(
   req: NextRequest,

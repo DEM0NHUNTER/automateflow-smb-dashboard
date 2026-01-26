@@ -1,3 +1,4 @@
+// api/workflows route to create and fetch workflows
 import { NextRequest, NextResponse } from "next/server";
 import { AppNode } from "@/lib/utils/types";
 // import { Prisma } from "@prisma/client";

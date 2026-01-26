@@ -1,3 +1,4 @@
+// This is the root layout of the application, defining global styles, fonts, and metadata.
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";

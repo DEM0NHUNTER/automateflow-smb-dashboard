@@ -1,3 +1,4 @@
+// New Workflow Creation Page with AI Generation and Execution Features
 "use client";
 
 import React, { useState } from "react";
@@ -96,10 +97,19 @@ export default function NewWorkflowPage() {
         setCurrentNodes(data.nodes);
         setCanvasKey(prev => prev + 1);
         setPrompt("");
-        toast.info("AI Generated Workflow", {
-          description: `Created ${data.nodes.length} nodes from your prompt.`,
-        });
-      }
+
+        // --- CHECK FOR DEMO FLAG ---
+        if (data.isDemo) {
+           toast.info("Demo Mode Active", {
+             description: "Using simulated response to save API costs. The full source code connects to live GPT-4.",
+             duration: 5000, // Visible for 5 seconds
+             icon: '🔒',
+           });
+        } else {
+           toast.success("AI Workflow Generated", {
+             description: `Created ${data.nodes.length} nodes from your prompt.`,
+           });
+        }
 
     } catch (e) {
       console.error(e);

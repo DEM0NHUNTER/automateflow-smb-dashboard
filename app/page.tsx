@@ -1,3 +1,4 @@
+// Description: Landing page for AutomateFlow with header and call-to-action button.
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
