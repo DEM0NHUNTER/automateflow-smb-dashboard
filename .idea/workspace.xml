@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3c9a0237-a1ca-4a1b-a1c6-7af34f83b9d7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/workflows/[id]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/workflows/[id]/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/dashboard/workflows/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/dashboard/workflows/page.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="3c9a0237-a1ca-4a1b-a1c6-7af34f83b9d7" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
