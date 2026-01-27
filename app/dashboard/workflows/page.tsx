@@ -151,7 +151,7 @@ export default function WorkflowsListPage() {
           <h1 className="text-3xl font-bold tracking-tight">Your Workflows</h1>
           <p className="text-muted-foreground">Manage and monitor your automations.</p>
         </div>
-        <Link href="/dashboard/workflows/new">
+        <Link href={`/dashboard/workflows/${workflow.id}`}>
           <Button className="gap-2 shadow-lg">
             <Plus className="w-4 h-4" /> New Workflow
           </Button>
@@ -167,7 +167,7 @@ export default function WorkflowsListPage() {
              <h3 className="font-semibold text-lg">No workflows yet</h3>
              <p className="text-muted-foreground">Create your first automation to get started.</p>
            </div>
-           <Link href="/dashboard/workflows/new">
+           <Link href={`/dashboard/workflows/${workflow.id}`}>
              <Button variant="outline">Create Now</Button>
            </Link>
         </div>
@@ -214,7 +214,7 @@ export default function WorkflowsListPage() {
               </div>
 
               <div className="pt-4 border-t border-border flex justify-end">
-                <Link href="/dashboard/workflows/new">
+                <Link href={`/dashboard/workflows/${workflow.id}`}>
                   <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/10 hover:text-primary">
                     Open Editor <ArrowRight className="w-4 h-4" />
                   </Button>
